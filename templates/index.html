@@ -1,0 +1,158 @@
+<html>
+<head>
+    <title>Sentiment Analysis</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="static/css/bootstrap.css">
+    <style type="text/css">
+    body {
+      padding-top:60px;
+      padding-bottom: 60px;
+    }
+    .margin-top { 
+        margin-top:15px;
+    }
+    .highlight
+    {
+        background-color:yellow;
+    }
+  </style>
+</head>
+<body>
+ 
+<div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Sentiment Analysis</a>
+        </div>
+    </div>
+  </div>
+ 
+<div class="container">
+
+    <div class="row margin-top">
+        <div class="col-md-8">
+            <textarea class="form-control" rows="2" placeholder="Write your text..."></textarea>
+        </div>
+        <div class="col-md-4" >
+            <div id="very_positive" style="display: none;">
+                <img src="static/images/very_positive.png" alt="Very Positive" style="width:50px;height:50px;">
+            </div>
+            <div id="positive" style="display: none;">
+                <img src="static/images/positive.png" alt="Positive" style="width:50px;height:50px;">
+            </div>
+            <div id="neutral" style="display: none;">
+                <img src="static/images/neutral.png" alt="Neutral" style="width:50px;height:50px;">
+            </div>
+            <div id="negative" style="display: none;">
+                <img src="static/images/negative.png" alt="Negative" style="width:50px;height:50px;">
+            </div>
+            <div id="very_negative" style="display: none;">
+                <img src="static/images/very_negative.png" alt="Very Negative" style="width:50px;height:50px;">
+            </div>
+        </div>
+    </div>
+
+    <div class="row margin-top">
+        <div class="col-md-8">
+            <div id="result">
+                
+            </div>
+        </div>
+    </div>
+
+</div>
+ 
+ 
+<script type="text/javascript" src="static/js/jquery.js"></script>
+<script type="text/javascript">
+
+    $("textarea").keyup(function(e){
+        
+        //console.log('keycode '+e.keyCode);
+        
+        switch (e.keyCode) {
+            case 8:  // Backspace console.log('backspace'+e);
+            case 9:  // Tab console.log('Tab');
+            case 13: // Enter console.log('Enter');
+            case 37: // Left console.log('Left');
+            case 38: // Up console.log('Up');
+            case 39: // Right console.log('Right');
+            case 40: // Down console.log('Down');
+            break;
+ 
+            default:
+            
+            var input = $('textarea').val();
+
+            if (input.length > 2){
+
+                // SENTIMENTS
+                $.get('/api/sentiment/' + input, function(result){
+                    
+                    console.log("Sentiment: " + result.polarity)
+
+                    // TEXT (remove colour)
+                    $('#result').removeClass("alert alert-warning");
+                    $('#result').removeClass("alert alert-danger");
+                    $('#result').removeClass("alert alert-success");
+
+                    // IMAGE (hide)
+                    document.getElementById('very_positive').style.display = 'none';
+                    document.getElementById('very_negative').style.display = 'none';
+                    document.getElementById('positive').style.display = 'none';
+                    document.getElementById('negative').style.display = 'none';
+                    document.getElementById('neutral').style.display = 'none';
+
+                    // TRADUCAO
+                    language = result.language
+                    text_to_display = "<p><b>" + language + ":</b> " + input + "</p>"
+                    if (language != "EN"){
+                        text_to_display = text_to_display + "<p><b>EN:</b> " + result.translate + "</p>"
+                    }
+
+                    var sentiment_margin = 0.25
+
+                    // NEGATIVE
+                    if(result.polarity < -sentiment_margin){
+                       
+                        $('#result').addClass("alert alert-danger");
+                        $('#result').html(text_to_display);
+                        if (result.polarity < sentiment_margin - 1 ) {
+                            document.getElementById('very_negative').style.display = 'inline-block';
+                       } else {
+                            document.getElementById('negative').style.display = 'inline-block';
+                       }
+
+                    // POSITIVE
+                    } else if ( result.polarity > sentiment_margin) {
+                        
+                        $('#result').addClass("alert alert-success");
+                        $('#result').html(text_to_display);
+
+                        if (result.polarity > 1 - sentiment_margin){
+                            document.getElementById('very_positive').style.display = 'inline-block';
+                        } else {
+                            document.getElementById('positive').style.display = 'inline-block';
+                        }
+                    // NEUTRAL
+                    }else{
+
+                        $('#result').addClass("alert alert-warning");
+                        $('#result').html(text_to_display);
+                        document.getElementById('neutral').style.display = 'inline-block';
+                        
+                    }
+
+                })
+            }
+        }
+    });
+    
+</script>
+</body>
+</html>
